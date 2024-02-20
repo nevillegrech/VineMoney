@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -28,9 +28,9 @@ contract StabilityPool is PrismaOwnable, SystemStart {
     uint256 public constant emissionId = 0;
 
     IDebtToken public immutable debtToken;
-    IPrismaVault public vault;
+    IPrismaVault public immutable vault;
     address public immutable factory;
-    address public liquidationManager;
+    address public immutable liquidationManager;
 
     uint128 public rewardRate;
     uint32 public lastUpdate;
@@ -138,19 +138,15 @@ contract StabilityPool is PrismaOwnable, SystemStart {
     constructor(
         address _prismaCore,
         IDebtToken _debtTokenAddress,
-        address _factory
+        IPrismaVault _vault,
+        address _factory,
+        address _liquidationManager
     ) PrismaOwnable(_prismaCore) SystemStart(_prismaCore) {
         debtToken = _debtTokenAddress;
-        factory = _factory;
-        periodFinish = uint32(block.timestamp - 1);
-    }
-
-    function setInitialParameters(
-        IPrismaVault _vault,
-        address _liquidationManager) external {
-        require(liquidationManager == address(0) && _liquidationManager != address(0));
         vault = _vault;
+        factory = _factory;
         liquidationManager = _liquidationManager;
+        periodFinish = uint32(block.timestamp - 1);
     }
 
     function enableCollateral(IERC20 _collateral) external {

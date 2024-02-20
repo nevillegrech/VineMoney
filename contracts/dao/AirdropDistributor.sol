@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
@@ -42,7 +42,7 @@ contract AirdropDistributor is Ownable {
     event Claimed(address indexed claimant, address indexed receiver, uint256 index, uint256 amount);
     event MerkleRootSet(bytes32 root, uint256 canClaimUntil);
 
-    constructor(IERC20 _token, ITokenLocker _locker, address _vault, uint256 lockWeeks) Ownable(msg.sender) {
+    constructor(IERC20 _token, ITokenLocker _locker, address _vault, uint256 lockWeeks) {
         token = _token;
         locker = _locker;
         vault = _vault;
@@ -94,6 +94,7 @@ contract AirdropDistributor is Ownable {
     ) external {
         if (msg.sender != claimant) {
             require(msg.sender == owner(), "onlyOwner");
+            require(claimant.isContract(), "Claimant must be a contract");
         }
 
         require(merkleRoot != bytes32(0), "merkleRoot not set");

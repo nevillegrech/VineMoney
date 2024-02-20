@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IStabilityPool.sol";
 import "../interfaces/ISortedTroves.sol";
 import "../interfaces/IBorrowerOperations.sol";
 import "../interfaces/ITroveManager.sol";
-import "../dependencies/VineMath.sol";
-import "../dependencies/VineBase.sol";
+import "../dependencies/PrismaMath.sol";
+import "../dependencies/PrismaBase.sol";
 
 /**
-    @title Vine Liquidation Manager
+    @title Prisma Liquidation Manager
     @notice Based on Liquity's `TroveManager`
             https://github.com/liquity/dev/blob/main/packages/contracts/contracts/TroveManager.sol
 
@@ -36,7 +36,7 @@ import "../dependencies/VineBase.sol";
                the value of the debt is distributed between stability pool depositors. The remaining
                collateral is left claimable by the trove owner.
  */
-contract LiquidationManager is VineBase {
+contract LiquidationManager is PrismaBase {
     IStabilityPool public immutable stabilityPool;
     IBorrowerOperations public immutable borrowerOperations;
     address public immutable factory;
@@ -101,7 +101,7 @@ contract LiquidationManager is VineBase {
         IBorrowerOperations _borrowerOperations,
         address _factory,
         uint256 _gasCompensation
-    ) VineBase(_gasCompensation) {
+    ) PrismaBase(_gasCompensation) {
         stabilityPool = _stabilityPoolAddress;
         borrowerOperations = _borrowerOperations;
         factory = _factory;
@@ -194,7 +194,7 @@ contract LiquidationManager is VineBase {
                 address account = nextAccount;
                 nextAccount = sortedTrovesCached.getPrev(account);
 
-                uint256 TCR = VineMath._computeCR(entireSystemColl, entireSystemDebt);
+                uint256 TCR = PrismaMath._computeCR(entireSystemColl, entireSystemDebt);
                 if (TCR >= CCR || ICR >= TCR) break;
 
                 singleLiquidation = _tryLiquidateWithCap(
@@ -323,7 +323,7 @@ contract LiquidationManager is VineBase {
                     );
                 } else {
                     if (troveManagerValues.sunsetting) continue;
-                    uint256 TCR = VineMath._computeCR(entireSystemColl, entireSystemDebt);
+                    uint256 TCR = PrismaMath._computeCR(entireSystemColl, entireSystemDebt);
                     if (TCR >= CCR || ICR >= TCR) continue;
                     singleLiquidation = _tryLiquidateWithCap(
                         troveManager,
@@ -532,7 +532,7 @@ contract LiquidationManager is VineBase {
              *  - Send a fraction of the trove's collateral to the Stability Pool, equal to the fraction of its offset debt
              *
              */
-            debtToOffset = VineMath._min(_debt, _debtInStabPool);
+            debtToOffset = PrismaMath._min(_debt, _debtInStabPool);
             collToSendToSP = (_coll * debtToOffset) / _debt;
             debtToRedistribute = _debt - debtToOffset;
             collToRedistribute = _coll - collToSendToSP;

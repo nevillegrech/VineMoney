@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
+import { OFT, IERC20, ERC20 } from "@layerzerolabs/solidity-examples/contracts/token/oft/OFT.sol";
 import { IERC3156FlashBorrower } from "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import "../interfaces/IPrismaCore.sol";
-import "../dependencies/ERC20.sol";
 
 /**
-    @title Prisma Debt Token "vUSD"
+    @title Prisma Debt Token "acUSD"
     @notice CDP minted against collateral deposits within `TroveManager`.
             This contract has a 1:n relationship with multiple deployments of `TroveManager`,
             each of which hold one collateral type which may be used to mint this token.
  */
-contract DebtToken is ERC20 {
+contract DebtToken is OFT {
     string public constant version = "1";
 
     // --- ERC 3156 Data ---
@@ -38,10 +38,10 @@ contract DebtToken is ERC20 {
 
     // --- Addresses ---
     IPrismaCore private immutable _prismaCore;
-    address public stabilityPoolAddress;
-    address public borrowerOperationsAddress;
-    address public factory;
-    address public gasPool;
+    address public immutable stabilityPoolAddress;
+    address public immutable borrowerOperationsAddress;
+    address public immutable factory;
+    address public immutable gasPool;
 
     mapping(address => bool) public troveManager;
 
@@ -51,11 +51,22 @@ contract DebtToken is ERC20 {
     constructor(
         string memory _name,
         string memory _symbol,
+        address _stabilityPoolAddress,
+        address _borrowerOperationsAddress,
         IPrismaCore prismaCore_,
+        address _layerZeroEndpoint,
+        address _factory,
+        address _gasPool,
         uint256 _gasCompensation
-    ) ERC20(address(prismaCore_), _name, _symbol) {
+    ) OFT(_name, _symbol, _layerZeroEndpoint) {
+        stabilityPoolAddress = _stabilityPoolAddress;
         _prismaCore = prismaCore_;
+        borrowerOperationsAddress = _borrowerOperationsAddress;
+        factory = _factory;
+        gasPool = _gasPool;
+
         DEBT_GAS_COMPENSATION = _gasCompensation;
+
         bytes32 hashedName = keccak256(bytes(_name));
         bytes32 hashedVersion = keccak256(bytes(version));
 
@@ -65,24 +76,9 @@ contract DebtToken is ERC20 {
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator(_TYPE_HASH, hashedName, hashedVersion);
     }
 
-    function setInitialParameters(address _factory,
-        address _gasPool, address _stabilityPoolAddress,
-        address _borrowerOperationsAddress) external {
-        require(factory == address(0) && _factory != address(0));
-        stabilityPoolAddress = _stabilityPoolAddress;
-        borrowerOperationsAddress = _borrowerOperationsAddress;
-        factory = _factory;
-        gasPool = _gasPool;
-    }
-
     function enableTroveManager(address _troveManager) external {
         require(msg.sender == factory, "!Factory");
         troveManager[_troveManager] = true;
-    }
-
-    function disableTroveManager(address _troveManager) external {
-        require(msg.sender == factory, "!Factory");
-        troveManager[_troveManager] = false;
     }
 
     // --- Functions for intra-Prisma calls ---
@@ -125,7 +121,7 @@ contract DebtToken is ERC20 {
 
     // --- External functions ---
 
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
+    function transfer(address recipient, uint256 amount) public override(IERC20, ERC20) returns (bool) {
         _requireValidRecipient(recipient);
         return super.transfer(recipient, amount);
     }
@@ -134,7 +130,7 @@ contract DebtToken is ERC20 {
         address sender,
         address recipient,
         uint256 amount
-    ) public override returns (bool) {
+    ) public override(IERC20, ERC20) returns (bool) {
         _requireValidRecipient(recipient);
         return super.transferFrom(sender, recipient, amount);
     }

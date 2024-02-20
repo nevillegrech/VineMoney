@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "../dependencies/DelegatedOps.sol";
 import "../dependencies/SystemStart.sol";
@@ -18,8 +18,8 @@ contract IncentiveVoting is DelegatedOps, SystemStart {
     uint256 public constant MAX_POINTS = 10000; // must be less than 2**16 or things will break
     uint256 public constant MAX_LOCK_WEEKS = 52; // must be the same as `MultiLocker`
 
-    ITokenLocker public tokenLocker;
-    address public vault;
+    ITokenLocker public immutable tokenLocker;
+    address public immutable vault;
 
     struct AccountData {
         // system week when the account's lock weights were registered
@@ -83,13 +83,9 @@ contract IncentiveVoting is DelegatedOps, SystemStart {
     // emitted each time the votes for `account` are cleared
     event ClearedVotes(address indexed account, uint256 indexed week);
 
-    constructor(address _prismaCore) SystemStart(_prismaCore) {
-    }
-
-    function setInitialParameters(ITokenLocker _tokenLocker, address _vault) external {
-        require(vault == address(0) && _vault != address(0));
-        vault = _vault;
+    constructor(address _prismaCore, ITokenLocker _tokenLocker, address _vault) SystemStart(_prismaCore) {
         tokenLocker = _tokenLocker;
+        vault = _vault;
     }
 
     function getAccountRegisteredLocks(

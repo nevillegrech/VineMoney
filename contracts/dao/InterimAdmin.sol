@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -42,12 +42,13 @@ contract InterimAdmin is Ownable {
     mapping(uint256 => Action[]) proposalPayloads;
     mapping(uint256 => uint256) dailyProposalsCount;
 
-    constructor(address _prismaCore) Ownable(msg.sender) {
+    constructor(address _prismaCore) {
         prismaCore = IPrismaCore(_prismaCore);
     }
 
     function setAdminVoting(address _adminVoting) external onlyOwner {
         require(adminVoting == address(0), "Already set");
+        require(_adminVoting.isContract(), "adminVoting must be a contract");
         adminVoting = _adminVoting;
     }
 

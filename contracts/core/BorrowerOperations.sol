@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -24,7 +24,6 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
 
     IDebtToken public immutable debtToken;
     address public immutable factory;
-    address public immutable ROSE = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     uint256 public minNetDebt;
 
     mapping(ITroveManager => TroveManagerData) public troveManagersData;
@@ -99,11 +98,6 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
     function _setMinNetDebt(uint256 _minNetDebt) internal {
         require(_minNetDebt > 0);
         minNetDebt = _minNetDebt;
-    }
-
-    function sendRose(address to, uint256 amount) external {
-        require(troveManagersData[ITroveManager(msg.sender)].collateralToken == IERC20(ROSE));
-        payable(to).transfer(amount);
     }
 
     function configureCollateral(ITroveManager troveManager, IERC20 collateralToken) external {
@@ -187,7 +181,7 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
         uint256 _debtAmount,
         address _upperHint,
         address _lowerHint
-    ) external payable callerOrDelegated(account) {
+    ) external callerOrDelegated(account) {
         require(!PRISMA_CORE.paused(), "Deposits are paused");
         IERC20 collateralToken;
         LocalVariables_openTrove memory vars;
@@ -201,7 +195,6 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
         ) = _getCollateralAndTCRData(troveManager);
 
         _requireValidMaxFeePercentage(_maxFeePercentage);
-        
 
         vars.netDebt = _debtAmount;
 
@@ -244,11 +237,7 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
         );
 
         // Move the collateral to the Trove Manager
-        if(address(collateralToken) == ROSE) {
-            require(msg.value == _collateralAmount, "NE");
-        } else {
-            collateralToken.safeTransferFrom(msg.sender, address(troveManager), _collateralAmount);
-        }
+        collateralToken.safeTransferFrom(msg.sender, address(troveManager), _collateralAmount);
 
         //  and mint the DebtAmount to the caller and gas compensation for Gas Pool
         debtToken.mintWithGasCompensation(msg.sender, _debtAmount);
@@ -261,11 +250,8 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
         uint256 _collateralAmount,
         address _upperHint,
         address _lowerHint
-    ) external callerOrDelegated(account) payable {
+    ) external callerOrDelegated(account) {
         require(!PRISMA_CORE.paused(), "Trove adjustments are paused");
-        if(troveManagersData[troveManager].collateralToken == IERC20(ROSE)) {
-            require(msg.value == _collateralAmount, "NE");
-        }
         _adjustTrove(troveManager, account, 0, _collateralAmount, 0, 0, false, _upperHint, _lowerHint);
     }
 
@@ -314,12 +300,9 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
         bool _isDebtIncrease,
         address _upperHint,
         address _lowerHint
-    ) external callerOrDelegated(account) payable {
+    ) external callerOrDelegated(account) {
         require((_collDeposit == 0 && !_isDebtIncrease) || !PRISMA_CORE.paused(), "Trove adjustments are paused");
         require(_collDeposit == 0 || _collWithdrawal == 0, "BorrowerOperations: Cannot withdraw and add coll");
-        if(_collDeposit > 0 && troveManagersData[troveManager].collateralToken == IERC20(ROSE)) {
-            require(msg.value == _collDeposit, "NE");
-        }
         _adjustTrove(
             troveManager,
             account,
@@ -400,7 +383,7 @@ contract BorrowerOperations is PrismaBase, PrismaOwnable, DelegatedOps {
         }
 
         // If we are incrasing collateral, send tokens to the trove manager prior to adjusting the trove
-        if (vars.isCollIncrease && address(collateralToken) != ROSE) collateralToken.safeTransferFrom(msg.sender, address(troveManager), vars.collChange);
+        if (vars.isCollIncrease) collateralToken.safeTransferFrom(msg.sender, address(troveManager), vars.collChange);
 
         (vars.newColl, vars.newDebt, vars.stake) = troveManager.updateTroveFromAdjustment(
             isRecoveryMode,

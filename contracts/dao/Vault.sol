@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -111,7 +111,9 @@ contract PrismaVault is PrismaOwnable, SystemStart {
         voter = _voter;
         lockToTokenRatio = _locker.lockToTokenRatio();
         deploymentManager = _manager;
-        
+
+        // ensure the stability pool is registered with receiver ID 0
+        _voter.registerNewReceiver();
         idToReceiver[0] = Receiver({ account: _stabilityPool, isActive: true });
         emit NewReceiverRegistered(_stabilityPool, 0);
     }
@@ -127,9 +129,6 @@ contract PrismaVault is PrismaOwnable, SystemStart {
         require(msg.sender == deploymentManager, "!deploymentManager");
         emissionSchedule = _emissionSchedule;
         boostCalculator = _boostCalculator;
-
-        // ensure the stability pool is registered with receiver ID 0
-        voter.registerNewReceiver();
 
         // mint totalSupply to vault - this reverts after the first call
         prismaToken.mintToVault(totalSupply);
@@ -529,6 +528,9 @@ contract PrismaVault is PrismaOwnable, SystemStart {
     function setBoostDelegationParams(bool isEnabled, uint256 feePct, address callback) external returns (bool) {
         if (isEnabled) {
             require(feePct <= 10000 || feePct == type(uint16).max, "Invalid feePct");
+            if (callback != address(0) || feePct == type(uint16).max) {
+                require(callback.isContract(), "Callback must be a contract");
+            }
             boostDelegation[msg.sender] = Delegation({
                 isEnabled: true,
                 feePct: uint16(feePct),

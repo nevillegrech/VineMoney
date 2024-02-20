@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { DelegatedOps } from "../dependencies/DelegatedOps.sol";
@@ -8,7 +8,7 @@ import { ITokenLocker } from "../interfaces/ITokenLocker.sol";
 
 /**
  * @title Vesting contract for team and investors
- * @author VineFi
+ * @author PrismaFi
  * @notice Vesting contract which allows transfer of future vesting claims
  */
 contract AllocationVesting is DelegatedOps {

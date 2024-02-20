@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "../interfaces/IERC2612.sol";
-import { IERC20, ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../dependencies/PrismaOwnable.sol";
+import { OFT, IERC20, ERC20 } from "@layerzerolabs/solidity-examples/contracts/token/oft/OFT.sol";
 
 /**
     @title Prisma Governance Token
     @notice Given as an incentive for users of the protocol. Can be locked in `TokenLocker`
             to receive lock weight, which gives governance power within the Prisma DAO.
  */
-contract PrismaToken is ERC20, IERC2612, PrismaOwnable {
+contract PrismaToken is OFT, IERC2612 {
     // --- ERC20 Data ---
 
     string internal constant _NAME = "Prisma Governance Token";
@@ -33,20 +32,16 @@ contract PrismaToken is ERC20, IERC2612, PrismaOwnable {
     bytes32 private immutable _HASHED_NAME;
     bytes32 private immutable _HASHED_VERSION;
 
-    address public locker;
-    address public vault;
-    address public celerEndPoint;
+    address public immutable locker;
+    address public immutable vault;
 
     uint256 public maxTotalSupply;
 
     mapping(address => uint256) private _nonces;
 
-    event ReceiveFromChain(uint16 indexed _srcChainId, address indexed _to, uint256 _amount);
-    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes _toAddress, uint256 _amount);
-
     // --- Functions ---
 
-    constructor(address _prismaCore) ERC20(_NAME, _SYMBOL) PrismaOwnable(_prismaCore) {
+    constructor(address _vault, address _layerZeroEndpoint, address _locker) OFT(_NAME, _SYMBOL, _layerZeroEndpoint) {
         bytes32 hashedName = keccak256(bytes(_NAME));
         bytes32 hashedVersion = keccak256(bytes(version));
 
@@ -54,16 +49,9 @@ contract PrismaToken is ERC20, IERC2612, PrismaOwnable {
         _HASHED_VERSION = hashedVersion;
         _CACHED_CHAIN_ID = block.chainid;
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator(_TYPE_HASH, hashedName, hashedVersion);
-    }
 
-    function setInitialParameters(address _vault, address _locker) external {
-        require(vault == address(0) && _vault != address(0));
-        vault = _vault;
         locker = _locker;
-    }
-
-    function setCelerEndPoint(address _celer) external onlyOwner {
-        celerEndPoint = _celer;
+        vault = _vault;
     }
 
     function mintToVault(uint256 _totalSupply) external returns (bool) {
@@ -74,18 +62,6 @@ contract PrismaToken is ERC20, IERC2612, PrismaOwnable {
         maxTotalSupply = _totalSupply;
 
         return true;
-    }
-
-    function receiveFromChain(uint16 srcChainId, address account, uint256 amount) external {
-        require(msg.sender == celerEndPoint, "Prisma: Caller not CE");
-        _mint(account, amount);
-        emit ReceiveFromChain(srcChainId, account, amount);
-    }
-
-    function burn(uint16 dstChainId, address from, bytes memory to, uint256 amount) external {
-        require(msg.sender == celerEndPoint, "Prisma: Caller not CE");
-        _burn(from, amount);
-        emit SendToChain(dstChainId, from, to, amount);
     }
 
     // --- EIP 2612 functionality ---
@@ -135,5 +111,9 @@ contract PrismaToken is ERC20, IERC2612, PrismaOwnable {
 
     function _buildDomainSeparator(bytes32 typeHash, bytes32 name_, bytes32 version_) private view returns (bytes32) {
         return keccak256(abi.encode(typeHash, name_, version_, block.chainid, address(this)));
+    }
+
+    function _beforeTokenTransfer(address, address to, uint256) internal virtual override {
+        require(to != address(this), "ERC20: transfer to the token address");
     }
 }

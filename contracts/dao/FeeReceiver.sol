@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../dependencies/PrismaOwnable.sol";
@@ -15,6 +15,6 @@ contract FeeReceiver is PrismaOwnable {
     }
 
     function setTokenApproval(IERC20 token, address spender, uint256 amount) external onlyOwner {
-        token.forceApprove(spender, amount);
+        token.safeApprove(spender, amount);
     }
 }

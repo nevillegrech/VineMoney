@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 /*
  * Base contract for TroveManager, BorrowerOperations and StabilityPool. Contains global system constants and
  * common functions.
  */
-contract VineBase {
+contract PrismaBase {
     uint256 public constant DECIMAL_PRECISION = 1e18;
 
     // Critical system collateral ratio. If the system's total collateral ratio (TCR) falls below the CCR, Recovery Mode is triggered.
-    uint256 public constant CCR = 1800000000000000000; // 180%
+    uint256 public constant CCR = 1500000000000000000; // 150%
 
     // Amount of debt to be locked in gas pool on opening troves
     uint256 public immutable DEBT_GAS_COMPENSATION;

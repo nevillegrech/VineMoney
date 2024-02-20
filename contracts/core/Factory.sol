@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "../dependencies/PrismaOwnable.sol";
@@ -21,9 +21,9 @@ contract Factory is PrismaOwnable {
 
     // fixed single-deployment contracts
     IDebtToken public immutable debtToken;
-    IStabilityPool public stabilityPool;
-    ILiquidationManager public liquidationManager;
-    IBorrowerOperations public borrowerOperations;
+    IStabilityPool public immutable stabilityPool;
+    ILiquidationManager public immutable liquidationManager;
+    IBorrowerOperations public immutable borrowerOperations;
 
     // implementation contracts, redeployed each time via clone proxy
     address public sortedTrovesImpl;
@@ -40,27 +40,24 @@ contract Factory is PrismaOwnable {
         uint256 maxBorrowingFee; // 1e18 / 100 * 5  (5%)
         uint256 interestRateInBps; // 100 (1%)
         uint256 maxDebt;
-        uint256 MCR; // 15 * 1e17  (150%)
+        uint256 MCR; // 12 * 1e17  (120%)
     }
 
     event NewDeployment(address collateral, address priceFeed, address troveManager, address sortedTroves);
 
     constructor(
         address _prismaCore,
-        IDebtToken _debtToken
-    ) PrismaOwnable(_prismaCore) {
-        debtToken = _debtToken;
-    }
-
-    function setInitialParameters(
+        IDebtToken _debtToken,
         IStabilityPool _stabilityPool,
         IBorrowerOperations _borrowerOperations,
         address _sortedTroves,
         address _troveManager,
-        ILiquidationManager _liquidationManager) external {
-        require(sortedTrovesImpl == address(0) && _sortedTroves != address(0));
+        ILiquidationManager _liquidationManager
+    ) PrismaOwnable(_prismaCore) {
+        debtToken = _debtToken;
         stabilityPool = _stabilityPool;
         borrowerOperations = _borrowerOperations;
+
         sortedTrovesImpl = _sortedTroves;
         troveManagerImpl = _troveManager;
         liquidationManager = _liquidationManager;
@@ -127,14 +124,5 @@ contract Factory is PrismaOwnable {
     function setImplementations(address _troveManagerImpl, address _sortedTrovesImpl) external onlyOwner {
         troveManagerImpl = _troveManagerImpl;
         sortedTrovesImpl = _sortedTrovesImpl;
-    }
-
-    function setTroveManager(address _troveManager, bool bol) external onlyOwner {
-        if(bol) {
-            debtToken.enableTroveManager(_troveManager);
-        } else {
-            debtToken.disableTroveManager(_troveManager);
-        }
-        
     }
 }
