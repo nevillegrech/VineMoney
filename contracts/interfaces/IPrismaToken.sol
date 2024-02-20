@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface IVineToken {
+interface IPrismaToken {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event SetPrecrime(address precrime);

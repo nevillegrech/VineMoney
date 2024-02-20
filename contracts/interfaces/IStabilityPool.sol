@@ -83,7 +83,7 @@ interface IStabilityPool {
 
     function lastDebtLossError_Offset() external view returns (uint256);
 
-    function lastVineError() external view returns (uint256);
+    function lastPrismaError() external view returns (uint256);
 
     function lastUpdate() external view returns (uint32);
 
