@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "../dependencies/VineOwnable.sol";
+import "../dependencies/PrismaOwnable.sol";
 import "../interfaces/ITroveManager.sol";
 import "../interfaces/IBorrowerOperations.sol";
 import "../interfaces/IDebtToken.sol";
@@ -12,11 +12,11 @@ import "../interfaces/IStabilityPool.sol";
 import "../interfaces/ILiquidationManager.sol";
 
 /**
-    @title Vine Trove Factory
+    @title Prisma Trove Factory
     @notice Deploys cloned pairs of `TroveManager` and `SortedTroves` in order to
             add new collateral types within the system.
  */
-contract Factory is VineOwnable {
+contract Factory is PrismaOwnable {
     using Clones for address;
 
     // fixed single-deployment contracts
@@ -46,9 +46,9 @@ contract Factory is VineOwnable {
     event NewDeployment(address collateral, address priceFeed, address troveManager, address sortedTroves);
 
     constructor(
-        address _vineCore,
+        address _prismaCore,
         IDebtToken _debtToken
-    ) VineOwnable(_vineCore) {
+    ) PrismaOwnable(_prismaCore) {
         debtToken = _debtToken;
     }
 
@@ -76,7 +76,7 @@ contract Factory is VineOwnable {
         @dev * When using the default `PriceFeed`, ensure it is configured correctly
                prior to calling this function.
              * After calling this function, the owner should also call `Vault.registerReceiver`
-               to enable VINE emissions on the newly deployed `TroveManager`
+               to enable PRISMA emissions on the newly deployed `TroveManager`
         @param collateral Collateral token to use in new deployment
         @param priceFeed Custom `PriceFeed` deployment. Leave as `address(0)` to use the default.
         @param customTroveManagerImpl Custom `TroveManager` implementation to clone from.

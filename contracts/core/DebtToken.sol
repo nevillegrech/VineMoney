@@ -3,11 +3,11 @@
 pragma solidity ^0.8.19;
 
 import { IERC3156FlashBorrower } from "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
-import "../interfaces/IVineCore.sol";
+import "../interfaces/IPrismaCore.sol";
 import "../dependencies/ERC20.sol";
 
 /**
-    @title Vine Debt Token "vUSD"
+    @title Prisma Debt Token "vUSD"
     @notice CDP minted against collateral deposits within `TroveManager`.
             This contract has a 1:n relationship with multiple deployments of `TroveManager`,
             each of which hold one collateral type which may be used to mint this token.
@@ -37,7 +37,7 @@ contract DebtToken is ERC20 {
     mapping(address => uint256) private _nonces;
 
     // --- Addresses ---
-    IVineCore private immutable _vineCore;
+    IPrismaCore private immutable _prismaCore;
     address public stabilityPoolAddress;
     address public borrowerOperationsAddress;
     address public factory;
@@ -51,10 +51,10 @@ contract DebtToken is ERC20 {
     constructor(
         string memory _name,
         string memory _symbol,
-        IVineCore vineCore_,
+        IPrismaCore prismaCore_,
         uint256 _gasCompensation
-    ) ERC20(address(vineCore_), _name, _symbol) {
-        _vineCore = vineCore_;
+    ) ERC20(address(prismaCore_), _name, _symbol) {
+        _prismaCore = prismaCore_;
         DEBT_GAS_COMPENSATION = _gasCompensation;
         bytes32 hashedName = keccak256(bytes(_name));
         bytes32 hashedVersion = keccak256(bytes(version));
@@ -85,7 +85,7 @@ contract DebtToken is ERC20 {
         troveManager[_troveManager] = false;
     }
 
-    // --- Functions for intra-Vine calls ---
+    // --- Functions for intra-Prisma calls ---
 
     function mintWithGasCompensation(address _account, uint256 _amount) external returns (bool) {
         require(msg.sender == borrowerOperationsAddress);
@@ -206,7 +206,7 @@ contract DebtToken is ERC20 {
         );
         _spendAllowance(address(receiver), address(this), amount + fee);
         _burn(address(receiver), amount);
-        _transfer(address(receiver), _vineCore.feeReceiver(), fee);
+        _transfer(address(receiver), _prismaCore.feeReceiver(), fee);
         return true;
     }
 

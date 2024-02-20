@@ -2,30 +2,30 @@
 
 pragma solidity ^0.8.19;
 
-import "../interfaces/IVineCore.sol";
+import "../interfaces/IPrismaCore.sol";
 
 /**
-    @title Vine Ownable
-    @notice Contracts inheriting `VineOwnable` have the same owner as `VineCore`.
+    @title Prisma Ownable
+    @notice Contracts inheriting `PrismaOwnable` have the same owner as `PrismaCore`.
             The ownership cannot be independently modified or renounced.
  */
-contract VineOwnable {
-    IVineCore public immutable VINE_CORE;
+contract PrismaOwnable {
+    IPrismaCore public immutable PRISMA_CORE;
 
-    constructor(address _vineCore) {
-        VINE_CORE = IVineCore(_vineCore);
+    constructor(address _prismaCore) {
+        PRISMA_CORE = IPrismaCore(_prismaCore);
     }
 
     modifier onlyOwner() {
-        require(msg.sender == VINE_CORE.owner(), "Only owner");
+        require(msg.sender == PRISMA_CORE.owner(), "Only owner");
         _;
     }
 
     function owner() public view returns (address) {
-        return VINE_CORE.owner();
+        return PRISMA_CORE.owner();
     }
 
     function guardian() public view returns (address) {
-        return VINE_CORE.guardian();
+        return PRISMA_CORE.guardian();
     }
 }

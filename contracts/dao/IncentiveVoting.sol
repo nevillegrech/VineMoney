@@ -7,10 +7,10 @@ import "../dependencies/SystemStart.sol";
 import "../interfaces/ITokenLocker.sol";
 
 /**
-    @title Vine Incentive Voting
-    @notice Users with VINE balances locked in `TokenLocker` may register their
+    @title Prisma Incentive Voting
+    @notice Users with PRISMA balances locked in `TokenLocker` may register their
             lock weights in this contract, and use this weight to vote on where
-            new VINE emissions will be released in the following week.
+            new PRISMA emissions will be released in the following week.
 
             Conceptually, incentive voting functions similarly to Curve's gauge weight voting.
  */
@@ -83,7 +83,7 @@ contract IncentiveVoting is DelegatedOps, SystemStart {
     // emitted each time the votes for `account` are cleared
     event ClearedVotes(address indexed account, uint256 indexed week);
 
-    constructor(address _vineCore) SystemStart(_vineCore) {
+    constructor(address _prismaCore) SystemStart(_prismaCore) {
     }
 
     function setInitialParameters(ITokenLocker _tokenLocker, address _vault) external {

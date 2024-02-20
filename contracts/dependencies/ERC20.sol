@@ -5,8 +5,8 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import "./VineSignature.sol";
-import "./VineOwnable.sol";
+import "./PrismaSignature.sol";
+import "./PrismaOwnable.sol";
 
 interface IERC20Metadata {
     /**
@@ -44,7 +44,7 @@ interface IERC20Metadata {
  * applications.
  *
  */
-abstract contract ERC20 is Context, IERC20Metadata, IERC20Errors, VineSignature, VineOwnable {
+abstract contract ERC20 is Context, IERC20Metadata, IERC20Errors, PrismaSignature, PrismaOwnable {
     mapping(address account => uint256) private _balances;
 
     mapping(address account => mapping(address spender => uint256)) private _allowances;
@@ -62,7 +62,7 @@ abstract contract ERC20 is Context, IERC20Metadata, IERC20Errors, VineSignature,
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(address _vineCore, string memory name_, string memory symbol_) VineOwnable(_vineCore) {
+    constructor(address _prismaCore, string memory name_, string memory symbol_) PrismaOwnable(_prismaCore) {
         _name = name_;
         _symbol = symbol_;
     }

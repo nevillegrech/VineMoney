@@ -4,17 +4,17 @@ pragma solidity ^0.8.19;
 
 import "../interfaces/IIncentiveVoting.sol";
 import "../interfaces/IVault.sol";
-import "../dependencies/VineOwnable.sol";
+import "../dependencies/PrismaOwnable.sol";
 import "../dependencies/SystemStart.sol";
 
 /**
-    @title Vine Emission Schedule
-    @notice Calculates weekly VINE emissions. The weekly amount is determined
+    @title Prisma Emission Schedule
+    @notice Calculates weekly PRISMA emissions. The weekly amount is determined
             as a percentage of the remaining unallocated supply. Over time the
             reward rate will decay to dust as it approaches the maximum supply,
             but should not reach zero for a Very Long Time.
  */
-contract EmissionSchedule is VineOwnable, SystemStart {
+contract EmissionSchedule is PrismaOwnable, SystemStart {
     event WeeklyPctScheduleSet(uint64[2][] schedule);
     event LockParametersSet(uint256 lockWeeks, uint256 lockDecayWeeks);
 
@@ -23,14 +23,14 @@ contract EmissionSchedule is VineOwnable, SystemStart {
     uint256 public constant MAX_LOCK_WEEKS = 52;
 
     IIncentiveVoting public immutable voter;
-    IVineVault public immutable vault;
+    IPrismaVault public immutable vault;
 
     // current number of weeks that emissions are locked for when they are claimed
     uint64 public lockWeeks;
     // every `lockDecayWeeks`, the number of lock weeks is decreased by one
     uint64 public lockDecayWeeks;
 
-    // percentage of the unallocated VINE supply given as emissions in a week
+    // percentage of the unallocated PRISMA supply given as emissions in a week
     uint64 public weeklyPct;
 
     // [(week, weeklyPct)... ] ordered by week descending
@@ -38,14 +38,14 @@ contract EmissionSchedule is VineOwnable, SystemStart {
     uint64[2][] private scheduledWeeklyPct;
 
     constructor(
-        address _vineCore,
+        address _prismaCore,
         IIncentiveVoting _voter,
-        IVineVault _vault,
+        IPrismaVault _vault,
         uint64 _initialLockWeeks,
         uint64 _lockDecayWeeks,
         uint64 _weeklyPct,
         uint64[2][] memory _scheduledWeeklyPct
-    ) VineOwnable(_vineCore) SystemStart(_vineCore) {
+    ) PrismaOwnable(_prismaCore) SystemStart(_prismaCore) {
         voter = _voter;
         vault = _vault;
 

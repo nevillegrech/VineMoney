@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface IVineVault {
+interface IPrismaVault {
     struct InitialAllowance {
         address receiver;
         uint256 amount;
@@ -51,7 +51,7 @@ interface IVineVault {
 
     function transferTokens(address token, address receiver, uint256 amount) external returns (bool);
 
-    function VINE_CORE() external view returns (address);
+    function PRISMA_CORE() external view returns (address);
 
     function allocated(address) external view returns (uint256);
 
@@ -84,7 +84,7 @@ interface IVineVault {
 
     function claimableBoostDelegationFees(address claimant) external view returns (uint256 amount);
 
-    function vineToken() external view returns (address);
+    function prismaToken() external view returns (address);
 
     function receiverUpdatedWeek(uint256) external view returns (uint16);
 

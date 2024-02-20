@@ -4,18 +4,18 @@ pragma solidity ^0.8.19;
 
 import "../interfaces/IERC2612.sol";
 import { IERC20, ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../dependencies/VineOwnable.sol";
+import "../dependencies/PrismaOwnable.sol";
 
 /**
-    @title Vine Governance Token
+    @title Prisma Governance Token
     @notice Given as an incentive for users of the protocol. Can be locked in `TokenLocker`
-            to receive lock weight, which gives governance power within the Vine DAO.
+            to receive lock weight, which gives governance power within the Prisma DAO.
  */
-contract VineToken is ERC20, IERC2612, VineOwnable {
+contract PrismaToken is ERC20, IERC2612, PrismaOwnable {
     // --- ERC20 Data ---
 
-    string internal constant _NAME = "Vine Governance Token";
-    string internal constant _SYMBOL = "VINE";
+    string internal constant _NAME = "Prisma Governance Token";
+    string internal constant _SYMBOL = "PRISMA";
     string public constant version = "1";
 
     // --- EIP 2612 Data ---
@@ -46,7 +46,7 @@ contract VineToken is ERC20, IERC2612, VineOwnable {
 
     // --- Functions ---
 
-    constructor(address _vineCore) ERC20(_NAME, _SYMBOL) VineOwnable(_vineCore) {
+    constructor(address _prismaCore) ERC20(_NAME, _SYMBOL) PrismaOwnable(_prismaCore) {
         bytes32 hashedName = keccak256(bytes(_NAME));
         bytes32 hashedVersion = keccak256(bytes(version));
 
@@ -77,13 +77,13 @@ contract VineToken is ERC20, IERC2612, VineOwnable {
     }
 
     function receiveFromChain(uint16 srcChainId, address account, uint256 amount) external {
-        require(msg.sender == celerEndPoint, "Vine: Caller not CE");
+        require(msg.sender == celerEndPoint, "Prisma: Caller not CE");
         _mint(account, amount);
         emit ReceiveFromChain(srcChainId, account, amount);
     }
 
     function burn(uint16 dstChainId, address from, bytes memory to, uint256 amount) external {
-        require(msg.sender == celerEndPoint, "Vine: Caller not CE");
+        require(msg.sender == celerEndPoint, "Prisma: Caller not CE");
         _burn(from, amount);
         emit SendToChain(dstChainId, from, to, amount);
     }
@@ -107,7 +107,7 @@ contract VineToken is ERC20, IERC2612, VineOwnable {
         bytes32 r,
         bytes32 s
     ) external override {
-        require(deadline >= block.timestamp, "VINE: expired deadline");
+        require(deadline >= block.timestamp, "PRISMA: expired deadline");
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -116,7 +116,7 @@ contract VineToken is ERC20, IERC2612, VineOwnable {
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress == owner, "VINE: invalid signature");
+        require(recoveredAddress == owner, "PRISMA: invalid signature");
         _approve(owner, spender, amount);
     }
 

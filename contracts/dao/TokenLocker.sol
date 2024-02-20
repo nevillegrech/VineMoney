@@ -2,19 +2,19 @@
 
 pragma solidity ^0.8.19;
 
-import "../dependencies/VineOwnable.sol";
+import "../dependencies/PrismaOwnable.sol";
 import "../dependencies/SystemStart.sol";
-import "../interfaces/IVineCore.sol";
+import "../interfaces/IPrismaCore.sol";
 import "../interfaces/IIncentiveVoting.sol";
-import "../interfaces/IVineToken.sol";
+import "../interfaces/IPrismaToken.sol";
 
 /**
-    @title Vine Token Locker
-    @notice VINE tokens can be locked in this contract to receive "lock weight",
+    @title Prisma Token Locker
+    @notice PRISMA tokens can be locked in this contract to receive "lock weight",
             which is used within `AdminVoting` and `IncentiveVoting` to vote on
             core protocol operations.
  */
-contract TokenLocker is VineOwnable, SystemStart {
+contract TokenLocker is PrismaOwnable, SystemStart {
     // The maximum number of weeks that tokens may be locked for. Also determines the maximum
     // number of active locks that a single account may open. Weight is calculated as:
     // `[balance] * [weeks to unlock]`. Weights are stored as `uint40` and balances as `uint32`,
@@ -30,9 +30,9 @@ contract TokenLocker is VineOwnable, SystemStart {
     // cannot be violated or the system could break due to overflow.
     uint256 public immutable lockToTokenRatio;
 
-    IVineToken public immutable lockToken;
+    IPrismaToken public immutable lockToken;
     IIncentiveVoting public immutable incentiveVoter;
-    IVineCore public immutable vineCore;
+    IPrismaCore public immutable prismaCore;
     address public immutable deploymentManager;
 
     bool public penaltyWithdrawalsEnabled;
@@ -106,15 +106,15 @@ contract TokenLocker is VineOwnable, SystemStart {
     );
 
     constructor(
-        address _vineCore,
-        IVineToken _token,
+        address _prismaCore,
+        IPrismaToken _token,
         IIncentiveVoting _voter,
         address _manager,
         uint256 _lockToTokenRatio
-    ) SystemStart(_vineCore) VineOwnable(_vineCore) {
+    ) SystemStart(_prismaCore) PrismaOwnable(_prismaCore) {
         lockToken = _token;
         incentiveVoter = _voter;
-        vineCore = IVineCore(_vineCore);
+        prismaCore = IPrismaCore(_prismaCore);
         deploymentManager = _manager;
 
         lockToTokenRatio = _lockToTokenRatio;
@@ -991,7 +991,7 @@ contract TokenLocker is VineOwnable, SystemStart {
         );
 
         lockToken.transfer(msg.sender, amountToWithdraw);
-        lockToken.transfer(vineCore.feeReceiver(), penaltyTotal);
+        lockToken.transfer(prismaCore.feeReceiver(), penaltyTotal);
         emit LocksWithdrawn(msg.sender, amountToWithdraw, penaltyTotal);
 
         return amountToWithdraw;

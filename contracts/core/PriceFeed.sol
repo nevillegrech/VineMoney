@@ -3,17 +3,17 @@
 pragma solidity ^0.8.19;
 import "../interfaces/IStdReference.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "../dependencies/VineMath.sol";
-import "../dependencies/VineOwnable.sol";
+import "../dependencies/PrismaMath.sol";
+import "../dependencies/PrismaOwnable.sol";
 
 /**
-    @title Vine Multi Token Price Feed
+    @title Prisma Multi Token Price Feed
     @notice Based on Gravita's PriceFeed:
             https://github.com/Gravita-Protocol/Gravita-SmartContracts/blob/9b69d555f3567622b0f84df8c7f1bb5cd9323573/contracts/PriceFeed.sol
 
-            Vine's implementation additionally caches price values within a block and incorporates exchange rate settings for derivative tokens (e.g. stETH -> wstETH).
+            Prisma's implementation additionally caches price values within a block and incorporates exchange rate settings for derivative tokens (e.g. stETH -> wstETH).
  */
-contract PriceFeed is VineOwnable {
+contract PriceFeed is PrismaOwnable {
     struct OracleRecord {
         IStdReference bandOracle;
         string base;
@@ -69,7 +69,7 @@ contract PriceFeed is VineOwnable {
         uint32 heartbeat;
     }
 
-    constructor(address _vineCore, OracleSetup[] memory oracles) VineOwnable(_vineCore) {
+    constructor(address _prismaCore, OracleSetup[] memory oracles) PrismaOwnable(_prismaCore) {
         for (uint i = 0; i < oracles.length; i++) {
             OracleSetup memory o = oracles[i];
             _setOracle(o.token, o.band, o.base, o.quote, o.heartbeat);
@@ -224,15 +224,15 @@ contract PriceFeed is VineOwnable {
         uint256 currentPrice = uint256(_currResponse.rate);
         uint256 prevPrice = uint256(priceRecord.price);
 
-        uint256 minPrice = VineMath._min(currentPrice, prevPrice);
-        uint256 maxPrice = VineMath._max(currentPrice, prevPrice);
+        uint256 minPrice = PrismaMath._min(currentPrice, prevPrice);
+        uint256 maxPrice = PrismaMath._max(currentPrice, prevPrice);
 
         /*
          * Use the larger price as the denominator:
          * - If price decreased, the percentage deviation is in relation to the previous price.
          * - If price increased, the percentage deviation is in relation to the current price.
          */
-        uint256 percentDeviation = ((maxPrice - minPrice) * VineMath.DECIMAL_PRECISION) / maxPrice;
+        uint256 percentDeviation = ((maxPrice - minPrice) * PrismaMath.DECIMAL_PRECISION) / maxPrice;
 
         return percentDeviation > MAX_PRICE_DEVIATION_FROM_PREVIOUS_ROUND;
     }

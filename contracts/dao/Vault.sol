@@ -4,9 +4,9 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "../dependencies/VineOwnable.sol";
+import "../dependencies/PrismaOwnable.sol";
 import "../dependencies/SystemStart.sol";
-import "../interfaces/IVineToken.sol";
+import "../interfaces/IPrismaToken.sol";
 import "../interfaces/IEmissionSchedule.sol";
 import "../interfaces/IIncentiveVoting.sol";
 import "../interfaces/ITokenLocker.sol";
@@ -24,17 +24,17 @@ interface IRewards {
 }
 
 /**
-    @title Vine Vault
-    @notice The total supply of VINE is initially minted to this contract.
+    @title Prisma Vault
+    @notice The total supply of PRISMA is initially minted to this contract.
             The token balance held here can be considered "uncirculating". The
             vault gradually releases tokens to registered emissions receivers
             as determined by `EmissionSchedule` and `BoostCalculator`.
  */
-contract VineVault is VineOwnable, SystemStart {
+contract PrismaVault is PrismaOwnable, SystemStart {
     using Address for address;
     using SafeERC20 for IERC20;
 
-    IVineToken public immutable vineToken;
+    IPrismaToken public immutable prismaToken;
     ITokenLocker public immutable locker;
     IIncentiveVoting public immutable voter;
     address public immutable deploymentManager;
@@ -43,13 +43,13 @@ contract VineVault is VineOwnable, SystemStart {
     IEmissionSchedule public emissionSchedule;
     IBoostCalculator public boostCalculator;
 
-    // `vineToken` balance within the treasury that is not yet allocated.
-    // Starts as `vineToken.totalSupply()` and decreases over time.
+    // `prismaToken` balance within the treasury that is not yet allocated.
+    // Starts as `prismaToken.totalSupply()` and decreases over time.
     uint128 public unallocatedTotal;
     // most recent week that `unallocatedTotal` was reduced by a call to
     // `emissionSchedule.getTotalWeeklyEmissions`
     uint64 public totalUpdateWeek;
-    // number of weeks that VINE is locked for when transferred using
+    // number of weeks that PRISMA is locked for when transferred using
     // `transferAllocatedTokens`. updated weekly by the emission schedule.
     uint64 public lockWeeks;
 
@@ -65,7 +65,7 @@ contract VineVault is VineOwnable, SystemStart {
     // receiver -> remaining tokens which have been allocated but not yet distributed
     mapping(address => uint256) public allocated;
 
-    // account -> week -> VINE amount claimed in that week (used for calculating boost)
+    // account -> week -> PRISMA amount claimed in that week (used for calculating boost)
     mapping(address => uint128[65535]) accountWeeklyEarned;
 
     // pending rewards for an address (dust after locking, fees from delegation)
@@ -99,14 +99,14 @@ contract VineVault is VineOwnable, SystemStart {
     event BoostDelegationSet(address indexed boostDelegate, bool isEnabled, uint256 feePct, address callback);
 
     constructor(
-        address _vineCore,
-        IVineToken _token,
+        address _prismaCore,
+        IPrismaToken _token,
         ITokenLocker _locker,
         IIncentiveVoting _voter,
         address _stabilityPool,
         address _manager
-    ) VineOwnable(_vineCore) SystemStart(_vineCore) {
-        vineToken = _token;
+    ) PrismaOwnable(_prismaCore) SystemStart(_prismaCore) {
+        prismaToken = _token;
         locker = _locker;
         voter = _voter;
         lockToTokenRatio = _locker.lockToTokenRatio();
@@ -132,7 +132,7 @@ contract VineVault is VineOwnable, SystemStart {
         voter.registerNewReceiver();
 
         // mint totalSupply to vault - this reverts after the first call
-        vineToken.mintToVault(totalSupply);
+        prismaToken.mintToVault(totalSupply);
 
         // set initial fixed weekly emissions
         uint256 totalAllocated;
@@ -151,7 +151,7 @@ contract VineVault is VineOwnable, SystemStart {
             address receiver = initialAllowances[i].receiver;
             totalAllocated += amount;
             // initial allocations are given as approvals
-            vineToken.increaseAllowance(receiver, amount);
+            prismaToken.increaseAllowance(receiver, amount);
         }
 
         unallocatedTotal = uint128(totalSupply - totalAllocated);
@@ -229,7 +229,7 @@ contract VineVault is VineOwnable, SystemStart {
         @notice Transfer tokens out of the vault
      */
     function transferTokens(IERC20 token, address receiver, uint256 amount) external onlyOwner returns (bool) {
-        if (address(token) == address(vineToken)) {
+        if (address(token) == address(prismaToken)) {
             require(receiver != address(this), "Self transfer denied");
             uint256 unallocated = unallocatedTotal - amount;
             unallocatedTotal = uint128(unallocated);
@@ -241,10 +241,10 @@ contract VineVault is VineOwnable, SystemStart {
     }
 
     /**
-        @notice Receive VINE tokens and add them to the unallocated supply
+        @notice Receive PRISMA tokens and add them to the unallocated supply
      */
     function increaseUnallocatedSupply(uint256 amount) external returns (bool) {
-        vineToken.transferFrom(msg.sender, address(this), amount);
+        prismaToken.transferFrom(msg.sender, address(this), amount);
         uint256 unallocated = unallocatedTotal + amount;
         unallocatedTotal = uint128(unallocated);
         emit UnallocatedSupplyIncreased(amount, unallocated);
@@ -279,10 +279,10 @@ contract VineVault is VineOwnable, SystemStart {
     }
 
     /**
-        @notice Allocate additional `vineToken` allowance to an emission reciever
+        @notice Allocate additional `prismaToken` allowance to an emission reciever
                 based on the emission schedule
         @param id Receiver ID. The caller must be the receiver mapped to this ID.
-        @return uint256 Additional `vineToken` allowance for the receiver. The receiver
+        @return uint256 Additional `prismaToken` allowance for the receiver. The receiver
                         accesses the tokens using `Vault.transferAllocatedTokens`
      */
     function allocateNewEmissions(uint256 id) external returns (uint256) {
@@ -321,7 +321,7 @@ contract VineVault is VineOwnable, SystemStart {
     }
 
     /**
-        @notice Transfer `vineToken` tokens previously allocated to the caller
+        @notice Transfer `prismaToken` tokens previously allocated to the caller
         @dev Callable only by registered receiver contracts which were previously
              allocated tokens using `allocateNewEmissions`.
         @param claimant Address that is claiming the tokens
@@ -461,7 +461,7 @@ contract VineVault is VineOwnable, SystemStart {
         uint256 _lockWeeks = lockWeeks;
         if (_lockWeeks == 0) {
             storedPendingReward[claimant] = 0;
-            vineToken.transfer(receiver, amount);
+            prismaToken.transfer(receiver, amount);
         } else {
             // lock for receiver and store remaining balance in `storedPendingReward`
             uint256 lockAmount = amount / lockToTokenRatio;
@@ -471,7 +471,7 @@ contract VineVault is VineOwnable, SystemStart {
     }
 
     /**
-        @notice Claimable VINE amount for `account` in `rewardContract` after applying boost
+        @notice Claimable PRISMA amount for `account` in `rewardContract` after applying boost
         @dev Returns (0, 0) if the boost delegate is invalid, or the delgate's callback fee
              function is incorrectly configured.
         @param account Address claiming rewards

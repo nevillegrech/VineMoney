@@ -14,13 +14,13 @@ interface IClaimCallback {
 }
 
 /**
-    @title Vine Airdrop Distributor
-    @notice Distributes VINE to veCRV holders that voted in favor of Vine's
+    @title Prisma Airdrop Distributor
+    @notice Distributes PRISMA to veCRV holders that voted in favor of Prisma's
             initial Curve governance proposal, and to early users who interacted
             with the protocol prior to token emissions.
-    @dev Airdropped VINE tokens are given as a locked position. Distribution
+    @dev Airdropped PRISMA tokens are given as a locked position. Distribution
          is via a merkle proof. The proof and script used to create are available
-         on Github: https://github.com/vine-fi/airdrop-proofs
+         on Github: https://github.com/prisma-fi/airdrop-proofs
  */
 contract AirdropDistributor is Ownable {
     using Address for address;
@@ -65,7 +65,7 @@ contract AirdropDistributor is Ownable {
         require(amount > 0, "Nothing to sweep");
         token.transferFrom(vault, address(this), amount);
         token.approve(vault, amount);
-        IVineVault(vault).increaseUnallocatedSupply(amount);
+        IPrismaVault(vault).increaseUnallocatedSupply(amount);
     }
 
     function isClaimed(uint256 index) public view returns (bool) {
