@@ -4,11 +4,11 @@ pragma solidity ^0.8.19;
 
 import "../../interfaces/ITroveManager.sol";
 import "../../interfaces/IFactory.sol";
-import "../../dependencies/VineSignature.sol";
+import "../../dependencies/PrismaSignature.sol";
 
 
-/*  Helper contract for grabbing Trove data for the front end. Not part of the core Vine system. */
-contract TroveManagerGetters is VineSignature {
+/*  Helper contract for grabbing Trove data for the front end. Not part of the core Prisma system. */
+contract TroveManagerGetters is PrismaSignature {
     struct Collateral {
         address collateral;
         address[] troveManagers;

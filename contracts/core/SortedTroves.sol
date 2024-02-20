@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 import "../interfaces/ITroveManager.sol";
 
 /**
-    @title Vine Sorted Troves
+    @title Prisma Sorted Troves
     @notice Based on Liquity's `SortedTroves`:
             https://github.com/liquity/dev/blob/main/packages/contracts/contracts/SortedTroves.sol
 

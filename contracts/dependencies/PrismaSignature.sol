@@ -7,7 +7,7 @@ struct SignatureRSV {
     uint256 v;
 }
 
-contract VineSignature {
+contract PrismaSignature {
     bytes32 public constant EIP712_DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
     string public constant SIGNIN_TYPE = "SignIn(address user,uint32 time)";
     bytes32 public constant SIGNIN_TYPEHASH = keccak256(bytes(SIGNIN_TYPE));
@@ -16,7 +16,7 @@ contract VineSignature {
     constructor () {
         DOMAIN_SEPARATOR = keccak256(abi.encode(
             EIP712_DOMAIN_TYPEHASH,
-            keccak256("VineSignature.SignIn"),
+            keccak256("PrismaSignature.SignIn"),
             keccak256("1"),
             block.chainid,
             address(this)

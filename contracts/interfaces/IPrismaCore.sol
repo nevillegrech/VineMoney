@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface IVineCore {
+interface IPrismaCore {
     event FeeReceiverSet(address feeReceiver);
     event GuardianSet(address guardian);
     event NewOwnerAccepted(address oldOwner, address owner);
